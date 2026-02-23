@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC Governance Engine — UX Case Study · Wisdom Godwin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0f0f;
+    --muted: #6b6b6b;
+    --rule: #e0e0e0;
+    --accent: #1a1aff;
+    --accent-light: #f0f0ff;
+    --warn: #e85d04;
+    --green: #1b7a34;
+    --cream: #faf9f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); font-size: 16px; line-height: 1.7; }
+
+  /* ── HERO ── */
+  .hero { background: var(--ink); color: #fff; padding: 80px 0 0; position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; top:-60px; right:-60px; width:400px; height:400px; border:1px solid rgba(255,255,255,0.05); border-radius:50%; }
+  .hero::after  { content:''; position:absolute; bottom:-100px; left:200px; width:600px; height:600px; border:1px solid rgba(255,255,255,0.03); border-radius:50%; }
+  .hero-inner { max-width:940px; margin:0 auto; padding:0 40px; position:relative; z-index:1; }
+
+  .byline-strip { display:flex; align-items:center; gap:14px; margin-bottom:28px; }
+  .avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#1a1aff,#7c3aed); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:14px; color:#fff; font-weight:500; flex-shrink:0; }
+  .byline-name { font-size:14px; color:rgba(255,255,255,0.85); font-weight:500; }
+  .byline-role { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); }
+  .byline-sep { width:1px; height:32px; background:rgba(255,255,255,0.12); }
+  .byline-tag { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
+
+  .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(34px,5vw,54px); font-weight:900; line-height:1.1; letter-spacing:-0.02em; margin-bottom:20px; }
+  .hero h1 em { font-style:italic; color:rgba(255,255,255,0.45); }
+  .hero-sub { font-size:16px; color:rgba(255,255,255,0.55); max-width:580px; line-height:1.65; margin-bottom:36px; font-weight:300; }
+
+  .meta-row { display:flex; gap:28px; flex-wrap:wrap; margin-bottom:40px; }
+  .meta-item { border-left:2px solid rgba(255,255,255,0.12); padding-left:14px; }
+  .meta-item .label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-bottom:2px; }
+  .meta-item .value { font-size:13px; color:rgba(255,255,255,0.75); font-weight:500; }
+
+  .hero-ctas { display:flex; gap:12px; flex-wrap:wrap; padding-bottom:40px; }
+  .cta-btn { display:inline-flex; align-items:center; gap:9px; background:#1a1aff; color:#fff; text-decoration:none; padding:13px 24px; border-radius:4px; font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; font-weight:500; transition:background 0.2s; border:2px solid #1a1aff; }
+  .cta-btn:hover { background:#0000cc; border-color:#0000cc; }
+  .cta-btn-ghost { display:inline-flex; align-items:center; gap:9px; background:transparent; color:rgba(255,255,255,0.6); text-decoration:none; padding:13px 24px; border-radius:4px; font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; font-weight:500; border:2px solid rgba(255,255,255,0.18); transition:all 0.2s; }
+  .cta-btn-ghost:hover { border-color:rgba(255,255,255,0.45); color:#fff; }
+
+  /* ── IMPACT BANNER (hero-bottom) ── */
+  .impact-banner { background:#111318; border-top:1px solid rgba(255,255,255,0.08); padding:28px 40px; display:flex; gap:0; max-width:100%; }
+  .impact-banner-inner { max-width:940px; margin:0 auto; display:flex; width:100%; gap:0; }
+  .imp { flex:1; padding:0 28px; border-right:1px solid rgba(255,255,255,0.08); }
+  .imp:first-child { padding-left:0; }
+  .imp:last-child { border-right:none; }
+  .imp-num { font-family:'Playfair Display',serif; font-size:30px; font-weight:900; color:#fff; line-height:1; }
+  .imp-num span { color:#1a1aff; }
+  .imp-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-top:4px; line-height:1.4; }
+
+  /* ── LAYOUT ── */
+  .container { max-width:940px; margin:0 auto; padding:0 40px; }
+  section { padding:68px 0; border-bottom:1px solid var(--rule); }
+  section:last-of-type { border-bottom:none; }
+  .section-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-bottom:28px; display:flex; align-items:center; gap:10px; }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--rule); }
+  h2 { font-family:'Playfair Display',serif; font-size:clamp(24px,3.5vw,34px); font-weight:700; line-height:1.2; letter-spacing:-0.02em; margin-bottom:18px; }
+  h3 { font-size:15px; font-weight:600; margin-bottom:9px; }
+  p { color:#2a2a2a; margin-bottom:14px; font-weight:300; }
+  p:last-child { margin-bottom:0; }
+  .narrative { max-width:660px; }
+
+  /* ── DECISION CHIPS (hero-level callouts) ── */
+  .decision-chips { display:flex; gap:10px; flex-wrap:wrap; margin:28px 0; }
+  .chip { display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:100px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.08em; border:1px solid var(--rule); background:#fff; color:var(--ink); }
+  .chip .chip-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+  /* ── PULL QUOTE ── */
+  .pull-quote { border-left:4px solid var(--accent); margin:36px 0; padding:18px 26px; background:var(--accent-light); }
+  .pull-quote p { font-family:'Playfair Display',serif; font-size:19px; font-style:italic; line-height:1.5; color:var(--ink); margin:0; font-weight:700; }
+
+  /* ── PAIN GRID ── */
+  .pain-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:28px 0; }
+  .pain-card { background:#fff; border:1px solid var(--rule); border-radius:4px; padding:20px 22px; }
+  .pain-card .number { font-family:'DM Mono',monospace; font-size:11px; color:var(--warn); letter-spacing:0.1em; margin-bottom:7px; display:block; }
+  .pain-card h3 { font-size:14px; margin-bottom:7px; }
+  .pain-card p { font-size:13px; color:var(--muted); margin:0; line-height:1.5; }
+
+  /* ── SCREEN FRAME ── */
+  .screen-frame { background:#1a1d24; border-radius:10px; overflow:hidden; margin:32px 0; box-shadow:0 20px 50px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1); }
+  .screen-chrome { background:#2d333b; padding:9px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #3d444d; }
+  .dot { width:10px; height:10px; border-radius:50%; }
+  .dot-r { background:#ff5f56; } .dot-y { background:#ffbd2e; } .dot-g { background:#27c93f; }
+  .screen-url { margin-left:10px; background:#0d1117; border-radius:4px; padding:4px 12px; font-family:'DM Mono',monospace; font-size:10px; color:#8b949e; flex:1; max-width:300px; }
+  .screen-body { background:#0a0c10; }
+  .screen-caption { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); text-align:center; padding:10px 0 28px; letter-spacing:0.07em; }
+
+  /* ── EMBEDDED APP ── */
+  .app-embed-wrap { border-radius:12px; overflow:hidden; box-shadow:0 28px 70px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.12); margin:32px 0; border:1px solid #21262d; }
+  .app-embed-bar { background:#2d333b; padding:10px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #3d444d; }
+  .app-embed-url { margin-left:10px; background:#0d1117; border-radius:4px; padding:5px 14px; font-family:'DM Mono',monospace; font-size:10px; color:#8b949e; flex:1; max-width:360px; display:flex; align-items:center; gap:8px; }
+  .url-dot { width:6px; height:6px; border-radius:50%; background:#27c93f; flex-shrink:0; }
+  .app-embed-bar-tag { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-left:auto; }
+  iframe.app { width:100%; height:640px; border:none; display:block; background:#0a0c10; }
+
+  /* ── FLOW ── */
+  .flow-container { background:#fff; border:1px solid var(--rule); border-radius:8px; padding:36px; margin:28px 0; overflow-x:auto; }
+  .flow-title { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:28px; }
+
+  /* ── LO-FI ── */
+  .lofi-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin:28px 0; }
+  .lofi-frame { background:#fff; border:2px solid var(--ink); border-radius:4px; overflow:hidden; }
+  .lofi-bar { background:var(--ink); height:26px; display:flex; align-items:center; padding:0 10px; gap:5px; }
+  .lofi-dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.25); }
+  .lofi-body { padding:10px; }
+  .lofi-caption { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-align:center; padding:9px; border-top:1px solid var(--rule); letter-spacing:0.05em; }
+
+  /* ── DESIGN SYSTEM ── */
+  .ds-section { background:#fff; border:1px solid var(--rule); border-radius:8px; overflow:hidden; margin:28px 0; }
+  .ds-header { background:var(--ink); padding:24px 32px; display:flex; align-items:center; justify-content:space-between; }
+  .ds-header-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#fff; }
+  .ds-header-sub { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-top:4px; }
+  .ds-version { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,0.35); letter-spacing:0.1em; }
+  .ds-body { padding:32px; }
+  .ds-row { display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-bottom:32px; }
+  .ds-row:last-child { margin-bottom:0; }
+  .ds-block-title { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+
+  /* Colour palette */
+  .palette { display:flex; gap:6px; flex-wrap:wrap; }
+  .swatch { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .swatch-color { width:52px; height:52px; border-radius:6px; border:1px solid rgba(0,0,0,0.06); }
+  .swatch-name { font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); letter-spacing:0.05em; text-align:center; }
+
+  /* Typography scale */
+  .type-scale { display:flex; flex-direction:column; gap:10px; }
+  .type-row { display:flex; align-items:baseline; gap:14px; border-bottom:1px solid var(--rule); padding-bottom:10px; }
+  .type-row:last-child { border-bottom:none; padding-bottom:0; }
+  .type-label { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); width:80px; flex-shrink:0; letter-spacing:0.08em; }
+  .type-sample { line-height:1.2; }
+
+  /* Component tokens */
+  .token-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .token-row { display:flex; align-items:center; gap:10px; padding:8px 12px; background:#fafafa; border-radius:4px; border:1px solid var(--rule); }
+  .token-swatch { width:20px; height:20px; border-radius:3px; border:1px solid rgba(0,0,0,0.08); flex-shrink:0; }
+  .token-name { font-family:'DM Mono',monospace; font-size:9px; color:var(--ink); letter-spacing:0.05em; }
+  .token-val { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); margin-left:auto; }
+
+  /* Components showcase */
+  .component-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .comp-btn { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.08em; padding:8px 16px; border-radius:3px; cursor:default; font-weight:500; }
+  .comp-btn-primary { background:#1a1aff; color:#fff; border:none; }
+  .comp-btn-ghost { background:transparent; color:var(--ink); border:2px solid var(--ink); }
+  .comp-btn-danger { background:#b91c1c; color:#fff; border:none; }
+  .comp-btn-sm { font-size:9px; padding:5px 10px; }
+
+  .comp-badge { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.06em; padding:3px 8px; border-radius:2px; }
+  .badge-low { background:#0d3321; color:#4ade80; border:1px solid #166534; }
+  .badge-med { background:#422006; color:#fbbf24; border:1px solid #92400e; }
+  .badge-high { background:#431407; color:#fb923c; border:1px solid #9a3412; }
+  .badge-crit { background:#450a0a; color:#f87171; border:1px solid #7f1d1d; }
+
+  .comp-cell-on { width:26px; height:26px; background:#0d2a4a; border:1px solid #1f6feb; border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:10px; color:#58a6ff; }
+  .comp-cell-off { width:26px; height:26px; background:#13151a; border:1px solid #21262d; border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:10px; color:#3d444d; }
+
+  .spacing-row { display:flex; align-items:flex-end; gap:12px; }
+  .sp { background:var(--accent); opacity:0.15; border-top:2px solid var(--accent); }
+  .sp-label { font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); text-align:center; margin-top:4px; }
+
+  /* ── TRADEOFF TABLE ── */
+  .tradeoff-table { width:100%; border-collapse:collapse; margin:28px 0; font-size:13px; }
+  .tradeoff-table thead tr { background:var(--ink); color:#fff; }
+  .tradeoff-table thead th { padding:11px 13px; text-align:left; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; font-weight:400; }
+  .tradeoff-table tbody tr { border-bottom:1px solid var(--rule); }
+  .tradeoff-table tbody tr:nth-child(even) { background:#fafafa; }
+  .tradeoff-table td { padding:12px 13px; vertical-align:top; line-height:1.5; }
+  .tradeoff-table td:first-child { font-weight:600; font-size:13px; width:130px; }
+  .tag-chose { font-family:'DM Mono',monospace; font-size:9px; padding:3px 7px; background:var(--green); color:#fff; border-radius:2px; letter-spacing:0.06em; white-space:nowrap; }
+  .col-sm { color:var(--muted); font-size:12px; }
+
+  /* ── STEPS ── */
+  .step { display:grid; grid-template-columns:48px 1fr; gap:18px; margin-bottom:32px; align-items:start; }
+  .step-num { width:48px; height:48px; border:2px solid var(--ink); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:14px; flex-shrink:0; }
+  .step-tag { display:inline-block; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; padding:3px 8px; border:1px solid var(--rule); border-radius:2px; color:var(--muted); margin-bottom:7px; }
+  .step-content h3 { margin-top:12px; margin-bottom:6px; }
+  .step-content p { font-size:14px; color:var(--muted); line-height:1.6; }
+
+  /* ── INSIGHT ── */
+  .insight { background:#fff; border:1px solid var(--rule); border-radius:4px; padding:22px 26px; margin:22px 0; display:grid; grid-template-columns:34px 1fr; gap:13px; align-items:start; }
+  .insight-icon { font-size:20px; margin-top:1px; }
+  .insight h3 { font-size:14px; margin-bottom:5px; }
+  .insight p { font-size:13px; color:var(--muted); line-height:1.5; margin:0; }
+
+  /* ── TOOLS ── */
+  .tools-list { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }
+  .tool-pill { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.06em; padding:7px 16px; border-radius:100px; background:#fff; border:1px solid var(--rule); color:var(--ink); display:flex; align-items:center; gap:8px; }
+  .tool-pill-phase { font-size:9px; color:var(--muted); border-left:1px solid var(--rule); padding-left:8px; }
+
+  /* ── METRICS ── */
+  .metrics-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:4px; overflow:hidden; margin:28px 0; }
+  .metric-card { background:#fff; padding:26px 22px; }
+  .metric-card .big { font-family:'Playfair Display',serif; font-size:38px; font-weight:900; line-height:1; color:var(--ink); margin-bottom:4px; }
+  .metric-card .big span { color:var(--accent); }
+  .metric-card .metric-label { font-size:12px; color:var(--muted); line-height:1.4; }
+  .metric-card .delta { display:inline-flex; align-items:center; gap:4px; font-family:'DM Mono',monospace; font-size:10px; color:var(--green); margin-top:8px; padding:2px 6px; background:#f0faf3; border-radius:2px; }
+
+  /* ── BA ── */
+  .ba-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:28px 0; }
+  .ba-card { border-radius:4px; padding:22px; }
+  .ba-card.before { background:#fff5f0; border:1px solid #ffd4c2; }
+  .ba-card.after  { background:#f0faf3; border:1px solid #b2dfc0; }
+  .ba-card .ba-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:12px; font-weight:500; }
+  .ba-card.before .ba-label { color:var(--warn); }
+  .ba-card.after  .ba-label { color:var(--green); }
+  .ba-card ul { list-style:none; }
+  .ba-card ul li { font-size:13px; line-height:1.5; padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; gap:9px; align-items:flex-start; }
+  .ba-card.before ul li::before { content:'✗'; font-size:11px; color:var(--warn); margin-top:3px; flex-shrink:0; }
+  .ba-card.after  ul li::before { content:'✓'; font-size:11px; color:var(--green); margin-top:3px; flex-shrink:0; }
+
+  .decision-box { border:2px solid var(--ink); border-radius:4px; padding:26px 30px; margin:26px 0; position:relative; }
+  .decision-box .box-label { position:absolute; top:-10px; left:18px; background:var(--cream); padding:0 8px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); font-weight:500; }
+
+  .divider { text-align:center; color:var(--muted); font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.2em; margin:44px 0; display:flex; align-items:center; gap:16px; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--rule); }
+
+  .footer { background:var(--ink); color:rgba(255,255,255,0.35); padding:40px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .footer-name { font-family:'Playfair Display',serif; font-size:16px; color:rgba(255,255,255,0.7); font-weight:700; }
+  .footer-meta { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; }
+
+  @media(max-width:700px){
+    .pain-grid,.ba-grid,.metrics-grid,.lofi-grid,.ds-row,.token-grid{grid-template-columns:1fr;}
+    .container,.hero-inner{padding:0 20px;}
+    .meta-row{gap:18px;}
+    .impact-banner-inner{flex-wrap:wrap;}
+    .imp{flex:1 1 40%; border-right:none; border-bottom:1px solid rgba(255,255,255,0.08); padding:12px 0;}
+    iframe.app{height:480px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HERO -->
+<div class="hero">
+  <div class="hero-inner">
+
+    <div class="byline-strip">
+      <div class="avatar">WG</div>
+      <div>
+        <div class="byline-name">Wisdom Godwin</div>
+        <div class="byline-role">Lead Product Designer</div>
+      </div>
+      <div class="byline-sep"></div>
+      <div class="byline-tag">UX Case Study · Enterprise SaaS · 2025</div>
+    </div>
+
+    <h1>When Giving Users <em>More</em> Control<br>Is the Wrong Answer</h1>
+    <p class="hero-sub">How I redesigned RBAC governance for 1,000+ seat organisations — and why the hardest decisions were about what to leave out.</p>
+
+    <div class="meta-row">
+      <div class="meta-item"><div class="label">Role</div><div class="value">Lead Product Designer</div></div>
+      <div class="meta-item"><div class="label">Design System</div><div class="value">RBAC Design System</div></div>
+      <div class="meta-item"><div class="label">Timeline</div><div class="value">14 weeks</div></div>
+      <div class="meta-item"><div class="label">Scope</div><div class="value">Permissions · Audit · Governance</div></div>
+      <div class="meta-item"><div class="label">Users Affected</div><div class="value">~34,000 org admins</div></div>
+    </div>
+
+    <!-- Key decisions surfaced immediately -->
+    <div style="margin-bottom:32px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:12px;">Key design decisions</div>
+      <div class="decision-chips">
+        <div class="chip"><div class="chip-dot" style="background:#1a1aff;"></div>Matrix grid over drag-and-drop</div>
+        <div class="chip"><div class="chip-dot" style="background:#1b7a34;"></div>Explicit publish — not auto-save</div>
+        <div class="chip"><div class="chip-dot" style="background:#d29922;"></div>Inline row expand over side panel</div>
+        <div class="chip"><div class="chip-dot" style="background:#7c3aed;"></div>Paginated log — not real-time stream</div>
+        <div class="chip"><div class="chip-dot" style="background:#e85d04;"></div>Unified org switcher in header</div>
+        <div class="chip"><div class="chip-dot" style="background:#0891b2;"></div>Role overview as separate surface</div>
+      </div>
+    </div>
+
+    <div class="hero-ctas">
+      <a href="rbac-app.html" target="_blank" class="cta-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Try Live Application
+      </a>
+      <a href="#process" class="cta-btn-ghost">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
+        Read the Process
+      </a>
+    </div>
+  </div>
+
+  <!-- Impact numbers anchored to hero bottom -->
+  <div class="impact-banner">
+    <div class="impact-banner-inner">
+      <div class="imp"><div class="imp-num">47<span>→8</span></div><div class="imp-label">Min to resolve<br>compliance query</div></div>
+      <div class="imp"><div class="imp-num">78<span>%</span></div><div class="imp-label">Drop in permission<br>support tickets</div></div>
+      <div class="imp"><div class="imp-num">91<span>%</span></div><div class="imp-label">Task completion<br>(was 54%)</div></div>
+      <div class="imp"><div class="imp-num">0</div><div class="imp-label">Critical permission<br>errors — 90 days</div></div>
+      <div class="imp"><div class="imp-num">4.4<span>/5</span></div><div class="imp-label">Admin CSAT<br>(was 2.8)</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════ LIVE APP LINK -->
+<section id="live-app">
+  <div class="container">
+    <div class="section-label">01 — Live Application</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:32px;">
+      <div class="narrative">
+        <h2>See the product in action</h2>
+        <p>The RBAC Governance Engine is fully interactive — switch org tenants, toggle individual permission cells, filter the audit log by severity, and expand event rows for full detail. Opens in a new tab.</p>
+      </div>
+      <a href="rbac-app.html" target="_blank" style="display:inline-flex;align-items:center;gap:12px;background:#0f0f0f;color:#fff;text-decoration:none;padding:18px 32px;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;border:2px solid #0f0f0f;transition:all 0.2s;white-space:nowrap;flex-shrink:0;" onmouseover="this.style.background='#1a1aff';this.style.borderColor='#1a1aff'" onmouseout="this.style.background='#0f0f0f';this.style.borderColor='#0f0f0f'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Live Application
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ CONTEXT -->
+<section id="process">
+  <div class="container">
+    <div class="section-label">02 — The Problem</div>
+    <div class="narrative">
+      <h2>A product admins dreaded logging into</h2>
+      <p>Our enterprise customers manage hundreds — sometimes thousands — of seats across departments, contractors, and partner orgs. When access goes wrong, it's a compliance emergency. The previous RBAC interface was built by engineers, for engineers. Every capability exposed. Every edge case a toggle. The result looked more like a server config file than a product.</p>
+    </div>
+
+    <div class="pull-quote">
+      <p>"I know the settings are in there somewhere. I just… don't touch it unless something breaks."</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:-22px;margin-bottom:28px;">— Org Admin, discovery interview</p>
+
+    <div class="pain-grid">
+      <div class="pain-card"><span class="number">PAIN 01</span><h3>Invisible risk</h3><p>No signals on dangerous permission overlaps. Everything looked equally important.</p></div>
+      <div class="pain-card"><span class="number">PAIN 02</span><h3>Audit panic</h3><p>Compliance queries required manual CSV digs. Average time to answer: <strong>47 minutes</strong>.</p></div>
+      <div class="pain-card"><span class="number">PAIN 03</span><h3>Multi-tenant blindness</h3><p>No unified view across orgs. Admins switched contexts one-by-one, losing state each time.</p></div>
+      <div class="pain-card"><span class="number">PAIN 04</span><h3>Fear of clicking</h3><p>78% of test participants paused before confirming any permission change. Cognitive load was destroying confidence.</p></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ SCREENSHOTS -->
+<section>
+  <div class="container">
+    <div class="section-label">03 — Product Screens</div>
+    <div class="narrative">
+      <h2>Three surfaces, one coherent system</h2>
+      <p>Each tab has a distinct job — editing, monitoring, and understanding. Mixing them created visual competition. Separating them let each surface breathe.</p>
+    </div>
+
+    <div class="screen-frame">
+      <div class="screen-chrome"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="screen-url">app.platform.io/governance/matrix</div></div>
+      <div class="screen-body">
+        <svg viewBox="0 0 820 400" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+          <rect width="820" height="400" fill="#0a0c10"/>
+          <rect width="820" height="52" fill="#0d1117"/><rect y="52" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="24" font-family="monospace" font-size="13" font-weight="700" fill="#f0f6fc">RBAC</text>
+          <text x="60" y="24" font-family="monospace" font-size="13" fill="#58a6ff">Governance</text>
+          <text x="165" y="24" font-family="monospace" font-size="9" fill="#3d444d">// ENGINE v2.1</text>
+          <rect x="540" y="12" width="180" height="28" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+          <text x="554" y="30" font-family="monospace" font-size="10" fill="#c9d1d9">Acme Corp — 1,240 seats</text>
+          <rect y="52" width="820" height="38" fill="#0d1117"/><rect y="90" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="67" font-family="monospace" font-size="8" fill="#6e7681">TOTAL SEATS</text><text x="24" y="80" font-family="monospace" font-size="11" font-weight="600" fill="#f0f6fc">1,240</text>
+          <line x1="160" y1="60" x2="160" y2="84" stroke="#21262d" stroke-width="1"/>
+          <text x="176" y="67" font-family="monospace" font-size="8" fill="#6e7681">ACTIVE ROLES</text><text x="176" y="80" font-family="monospace" font-size="11" font-weight="600" fill="#f0f6fc">6</text>
+          <line x1="300" y1="60" x2="300" y2="84" stroke="#21262d" stroke-width="1"/>
+          <text x="316" y="67" font-family="monospace" font-size="8" fill="#6e7681">PERMISSIONS</text><text x="316" y="80" font-family="monospace" font-size="11" font-weight="600" fill="#f0f6fc">148</text>
+          <line x1="440" y1="60" x2="440" y2="84" stroke="#21262d" stroke-width="1"/>
+          <text x="456" y="67" font-family="monospace" font-size="8" fill="#6e7681">AUDIT EVENTS</text><text x="456" y="80" font-family="monospace" font-size="11" font-weight="600" fill="#f0f6fc">9,821</text>
+          <rect y="90" width="820" height="36" fill="#0d1117"/><rect y="126" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="113" font-family="monospace" font-size="10" fill="#58a6ff">PERMISSION MATRIX</text>
+          <rect x="24" y="122" width="130" height="2" fill="#58a6ff"/>
+          <text x="180" y="113" font-family="monospace" font-size="10" fill="#6e7681">AUDIT LOG</text>
+          <text x="294" y="113" font-family="monospace" font-size="10" fill="#6e7681">ROLE OVERVIEW</text>
+          <rect y="126" width="820" height="48" fill="#0d1117"/><rect y="174" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="155" font-family="monospace" font-size="8" fill="#6e7681">RESOURCE</text>
+          <text x="162" y="148" font-family="monospace" font-size="9" fill="#c9d1d9">Super Admin</text>
+          <text x="269" y="148" font-family="monospace" font-size="9" fill="#c9d1d9">Org Admin</text>
+          <text x="370" y="148" font-family="monospace" font-size="9" fill="#c9d1d9">Manager</text>
+          <text x="462" y="148" font-family="monospace" font-size="9" fill="#c9d1d9">Developer</text>
+          <text x="560" y="148" font-family="monospace" font-size="9" fill="#c9d1d9">Viewer</text>
+          <text x="648" y="148" font-family="monospace" font-size="9" fill="#c9d1d9">Billing</text>
+          <g font-family="monospace" font-size="7" fill="#3d444d">
+            <text x="160" y="168">CRE</text><text x="182" y="168">REA</text><text x="204" y="168">UPD</text><text x="226" y="168">DEL</text><text x="248" y="168">EXP</text>
+            <text x="268" y="168">CRE</text><text x="290" y="168">REA</text><text x="312" y="168">UPD</text><text x="334" y="168">DEL</text><text x="356" y="168">EXP</text>
+            <text x="368" y="168">CRE</text><text x="390" y="168">REA</text><text x="412" y="168">UPD</text><text x="434" y="168">DEL</text><text x="456" y="168">EXP</text>
+            <text x="458" y="168">CRE</text><text x="480" y="168">REA</text><text x="502" y="168">UPD</text><text x="524" y="168">DEL</text><text x="546" y="168">EXP</text>
+          </g>
+          <!-- rows -->
+          <rect y="174" width="820" height="36" fill="#0d1117"/><text x="24" y="197" font-family="monospace" font-size="10" fill="#e6edf3">Users</text>
+          <rect x="159" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="165" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="181" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="187" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="203" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="209" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="225" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="231" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="247" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="253" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="267" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="273" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="289" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="295" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="311" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="317" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="333" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="339" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="355" y="181" width="22" height="22" rx="2" fill="#13151a" stroke="#21262d" stroke-width="1"/><text x="361" y="196" font-family="monospace" font-size="9" fill="#3d444d">·</text>
+          <rect x="367" y="181" width="22" height="22" rx="2" fill="#13151a" stroke="#21262d"/><text x="373" y="196" font-family="monospace" font-size="9" fill="#3d444d">·</text>
+          <rect x="389" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="395" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="411" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="417" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="433" y="181" width="22" height="22" rx="2" fill="#13151a" stroke="#21262d"/><text x="439" y="196" font-family="monospace" font-size="9" fill="#3d444d">·</text>
+          <rect x="457" y="181" width="22" height="22" rx="2" fill="#13151a" stroke="#21262d"/><text x="463" y="196" font-family="monospace" font-size="9" fill="#3d444d">·</text>
+          <rect x="479" y="181" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="485" y="196" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="600" y="178" width="136" height="26" rx="3" fill="#1f6feb"/><text x="618" y="195" font-family="monospace" font-size="9" fill="#fff">PUBLISH CHANGES</text>
+          <text x="568" y="193" font-family="monospace" font-size="8" fill="#d29922">● unsaved</text>
+          <rect y="210" width="820" height="1" fill="#161b22"/>
+          <rect y="210" width="820" height="36" fill="#0a0c10"/><text x="24" y="233" font-family="monospace" font-size="10" fill="#e6edf3">Projects</text>
+          <rect x="159" y="217" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="165" y="232" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="267" y="217" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="273" y="232" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="457" y="217" width="22" height="22" rx="2" fill="#13151a" stroke="#21262d"/><text x="463" y="232" font-family="monospace" font-size="9" fill="#3d444d">·</text>
+          <rect x="479" y="217" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="485" y="232" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect y="246" width="820" height="1" fill="#161b22"/>
+          <rect y="246" width="820" height="36" fill="#0d1117"/><text x="24" y="269" font-family="monospace" font-size="10" fill="#e6edf3">Billing</text>
+          <rect x="159" y="253" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="165" y="268" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="267" y="253" width="22" height="22" rx="2" fill="#13151a" stroke="#21262d"/><text x="273" y="268" font-family="monospace" font-size="9" fill="#3d444d">·</text>
+          <rect x="289" y="253" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="295" y="268" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="457" y="253" width="22" height="22" rx="2" fill="#13151a" stroke="#21262d"/><text x="463" y="268" font-family="monospace" font-size="9" fill="#3d444d">·</text>
+          <rect y="282" width="820" height="1" fill="#161b22"/>
+          <rect y="282" width="820" height="36" fill="#0a0c10"/><text x="24" y="305" font-family="monospace" font-size="10" fill="#e6edf3">APIs</text>
+          <rect x="159" y="289" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="165" y="304" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="457" y="289" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="463" y="304" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect x="479" y="289" width="22" height="22" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/><text x="485" y="304" font-family="monospace" font-size="9" fill="#58a6ff">✓</text>
+          <rect y="318" width="820" height="1" fill="#161b22"/>
+          <rect y="318" width="820" height="36" fill="#0d1117"/><text x="24" y="341" font-family="monospace" font-size="10" fill="#e6edf3">Reports</text>
+          <rect y="354" width="820" height="1" fill="#161b22"/>
+          <rect y="354" width="820" height="36" fill="#0a0c10"/><text x="24" y="377" font-family="monospace" font-size="10" fill="#e6edf3">Audit Logs</text>
+          <rect x="630" y="370" width="12" height="12" rx="2" fill="#0d2a4a" stroke="#1f6feb" stroke-width="1"/>
+          <text x="646" y="380" font-family="monospace" font-size="8" fill="#6e7681">Allowed</text>
+          <rect x="692" y="370" width="12" height="12" rx="2" fill="#13151a" stroke="#21262d" stroke-width="1"/>
+          <text x="708" y="380" font-family="monospace" font-size="8" fill="#6e7681">Denied</text>
+        </svg>
+      </div>
+    </div>
+    <p class="screen-caption">Screen 1 — Permission Matrix: Role × Resource × Action toggle grid</p>
+
+    <div class="screen-frame">
+      <div class="screen-chrome"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="screen-url">app.platform.io/governance/audit</div></div>
+      <div class="screen-body">
+        <svg viewBox="0 0 820 330" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+          <rect width="820" height="330" fill="#0a0c10"/>
+          <rect width="820" height="52" fill="#0d1117"/><rect y="52" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="24" font-family="monospace" font-size="13" font-weight="700" fill="#f0f6fc">RBAC</text><text x="60" y="24" font-family="monospace" font-size="13" fill="#58a6ff">Governance</text>
+          <rect x="540" y="12" width="180" height="28" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/><text x="554" y="30" font-family="monospace" font-size="10" fill="#c9d1d9">Acme Corp — 1,240 seats</text>
+          <rect y="52" width="820" height="38" fill="#0d1117"/><rect y="90" width="820" height="1" fill="#21262d"/>
+          <rect y="90" width="820" height="36" fill="#0d1117"/><rect y="126" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="113" font-family="monospace" font-size="10" fill="#6e7681">PERMISSION MATRIX</text>
+          <text x="172" y="113" font-family="monospace" font-size="10" fill="#58a6ff">AUDIT LOG</text>
+          <rect x="172" y="122" width="68" height="2" fill="#58a6ff"/>
+          <text x="266" y="113" font-family="monospace" font-size="10" fill="#6e7681">ROLE OVERVIEW</text>
+          <rect y="126" width="820" height="40" fill="#0d1117"/><rect y="166" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="151" font-family="monospace" font-size="10" font-weight="700" fill="#f0f6fc">Audit Log</text>
+          <rect x="340" y="136" width="40" height="20" rx="2" fill="#0d2a4a" stroke="#58a6ff" stroke-width="1"/><text x="351" y="150" font-family="monospace" font-size="8" fill="#58a6ff">all</text>
+          <rect x="386" y="136" width="56" height="20" rx="2" fill="#3d0c0c" stroke="#6e1313" stroke-width="1"/><text x="394" y="150" font-family="monospace" font-size="8" fill="#ff7b72">critical</text>
+          <rect x="448" y="136" width="36" height="20" rx="2" fill="#161b22" stroke="#21262d"/><text x="456" y="150" font-family="monospace" font-size="8" fill="#6e7681">high</text>
+          <rect x="490" y="136" width="50" height="20" rx="2" fill="#161b22" stroke="#21262d"/><text x="498" y="150" font-family="monospace" font-size="8" fill="#6e7681">medium</text>
+          <rect x="546" y="136" width="36" height="20" rx="2" fill="#161b22" stroke="#21262d"/><text x="554" y="150" font-family="monospace" font-size="8" fill="#6e7681">low</text>
+          <rect x="604" y="134" width="180" height="22" rx="3" fill="#161b22" stroke="#30363d" stroke-width="1"/><text x="616" y="149" font-family="monospace" font-size="9" fill="#3d444d">Search events...</text>
+          <rect y="166" width="820" height="30" fill="#0d1117"/><rect y="196" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="185" font-family="monospace" font-size="8" fill="#6e7681">EVENT ID</text>
+          <text x="100" y="185" font-family="monospace" font-size="8" fill="#6e7681">TIMESTAMP</text>
+          <text x="220" y="185" font-family="monospace" font-size="8" fill="#6e7681">ACTOR</text>
+          <text x="360" y="185" font-family="monospace" font-size="8" fill="#6e7681">ACTION</text>
+          <text x="500" y="185" font-family="monospace" font-size="8" fill="#6e7681">RESOURCE</text>
+          <text x="630" y="185" font-family="monospace" font-size="8" fill="#6e7681">SEVERITY</text>
+          <!-- row 1 expanded -->
+          <rect y="196" width="820" height="32" fill="#161b22"/>
+          <text x="24" y="217" font-family="monospace" font-size="10" fill="#58a6ff">EVT-9821</text>
+          <text x="100" y="217" font-family="monospace" font-size="9" fill="#8b949e">2025-02-22 14:32</text>
+          <text x="220" y="217" font-family="monospace" font-size="9" fill="#e6edf3">james.wu@acme.com</text>
+          <text x="360" y="217" font-family="monospace" font-size="9" fill="#c9d1d9">PERMISSION_UPDATED</text>
+          <text x="500" y="217" font-family="monospace" font-size="9" fill="#8b949e">Role: Developer</text>
+          <rect x="628" y="206" width="50" height="14" rx="2" fill="#422006" stroke="#92400e" stroke-width="1"/><text x="636" y="217" font-family="monospace" font-size="8" fill="#fbbf24">medium</text>
+          <!-- expanded detail -->
+          <rect y="228" width="820" height="48" fill="#0d1117"/><rect y="276" width="820" height="1" fill="#21262d"/>
+          <text x="32" y="244" font-family="monospace" font-size="8" fill="#6e7681">FULL TIMESTAMP</text><text x="32" y="256" font-family="monospace" font-size="9" fill="#e6edf3">2025-02-22 14:32:01 UTC</text>
+          <text x="210" y="244" font-family="monospace" font-size="8" fill="#6e7681">ORG</text><text x="210" y="256" font-family="monospace" font-size="9" fill="#e6edf3">Acme Corp</text>
+          <text x="360" y="244" font-family="monospace" font-size="8" fill="#6e7681">ACTION</text><text x="360" y="256" font-family="monospace" font-size="9" fill="#e6edf3">PERMISSION_UPDATED</text>
+          <rect x="550" y="260" width="68" height="14" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/><text x="560" y="271" font-family="monospace" font-size="8" fill="#8b949e">Export JSON</text>
+          <rect x="624" y="260" width="92" height="14" rx="2" fill="#161b22" stroke="#30363d" stroke-width="1"/><text x="634" y="271" font-family="monospace" font-size="8" fill="#8b949e">View Related Events</text>
+          <!-- rows -->
+          <rect y="276" width="820" height="28" fill="#0a0c10"/>
+          <text x="24" y="295" font-family="monospace" font-size="10" fill="#58a6ff">EVT-9817</text>
+          <text x="100" y="295" font-family="monospace" font-size="9" fill="#8b949e">2025-02-22 13:15</text>
+          <text x="220" y="295" font-family="monospace" font-size="9" fill="#e6edf3">james.wu@acme.com</text>
+          <text x="360" y="295" font-family="monospace" font-size="9" fill="#c9d1d9">API_KEY_REVOKED</text>
+          <text x="500" y="295" font-family="monospace" font-size="9" fill="#8b949e">Integration: Salesforce</text>
+          <rect x="626" y="284" width="52" height="14" rx="2" fill="#4d0a0a" stroke="#7f1d1d" stroke-width="1"/><text x="632" y="295" font-family="monospace" font-size="8" fill="#ef4444">critical</text>
+          <rect y="304" width="820" height="26" fill="#0d1117"/>
+          <text x="24" y="321" font-family="monospace" font-size="10" fill="#58a6ff">EVT-9815</text>
+          <text x="100" y="321" font-family="monospace" font-size="9" fill="#8b949e">2025-02-22 12:30</text>
+          <text x="220" y="321" font-family="monospace" font-size="9" fill="#d29922">system</text>
+          <text x="360" y="321" font-family="monospace" font-size="9" fill="#c9d1d9">SSO_CONFIG_CHANGED</text>
+          <rect x="626" y="310" width="52" height="14" rx="2" fill="#4d0a0a" stroke="#7f1d1d" stroke-width="1"/><text x="632" y="321" font-family="monospace" font-size="8" fill="#ef4444">critical</text>
+        </svg>
+      </div>
+    </div>
+    <p class="screen-caption">Screen 2 — Audit Log: Severity-filtered event stream with inline expanded detail</p>
+
+    <div class="screen-frame">
+      <div class="screen-chrome"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="screen-url">app.platform.io/governance/roles</div></div>
+      <div class="screen-body">
+        <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+          <rect width="820" height="300" fill="#0a0c10"/>
+          <rect width="820" height="52" fill="#0d1117"/><rect y="52" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="24" font-family="monospace" font-size="13" font-weight="700" fill="#f0f6fc">RBAC</text><text x="60" y="24" font-family="monospace" font-size="13" fill="#58a6ff">Governance</text>
+          <rect x="540" y="12" width="180" height="28" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/><text x="554" y="30" font-family="monospace" font-size="10" fill="#c9d1d9">Acme Corp — 1,240 seats</text>
+          <rect y="52" width="820" height="36" fill="#0d1117"/><rect y="88" width="820" height="1" fill="#21262d"/>
+          <rect y="88" width="820" height="34" fill="#0d1117"/><rect y="122" width="820" height="1" fill="#21262d"/>
+          <text x="24" y="109" font-family="monospace" font-size="10" fill="#6e7681">PERMISSION MATRIX</text>
+          <text x="172" y="109" font-family="monospace" font-size="10" fill="#6e7681">AUDIT LOG</text>
+          <text x="266" y="109" font-family="monospace" font-size="10" fill="#58a6ff">ROLE OVERVIEW</text>
+          <rect x="266" y="118" width="96" height="2" fill="#58a6ff"/>
+          <!-- 6 role cards -->
+          <rect x="16" y="136" width="248" height="76" rx="4" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+          <rect x="16" y="136" width="4" height="76" rx="2" fill="#da3633"/>
+          <text x="30" y="156" font-family="monospace" font-size="11" font-weight="600" fill="#e6edf3">Super Admin</text>
+          <text x="30" y="170" font-family="monospace" font-size="8" fill="#6e7681">4 SEATS · 0.3%</text>
+          <text x="218" y="156" font-family="monospace" font-size="20" font-weight="900" fill="#da3633">40</text>
+          <text x="218" y="167" font-family="monospace" font-size="7" fill="#6e7681">perms</text>
+          <rect x="30" y="178" width="222" height="3" rx="1" fill="#161b22"/>
+          <rect x="30" y="178" width="4" height="3" rx="1" fill="#da3633" opacity="0.7"/>
+          <text x="30" y="204" font-family="monospace" font-size="7" fill="#6e7681">All resources · Full access</text>
+
+          <rect x="284" y="136" width="248" height="76" rx="4" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+          <rect x="284" y="136" width="4" height="76" rx="2" fill="#db6d28"/>
+          <text x="298" y="156" font-family="monospace" font-size="11" font-weight="600" fill="#e6edf3">Org Admin</text>
+          <text x="298" y="170" font-family="monospace" font-size="8" fill="#6e7681">18 SEATS · 1.5%</text>
+          <text x="486" y="156" font-family="monospace" font-size="20" font-weight="900" fill="#db6d28">28</text>
+          <text x="486" y="167" font-family="monospace" font-size="7" fill="#6e7681">perms</text>
+          <rect x="298" y="178" width="222" height="3" rx="1" fill="#161b22"/>
+          <rect x="298" y="178" width="14" height="3" rx="1" fill="#db6d28" opacity="0.7"/>
+
+          <rect x="552" y="136" width="252" height="76" rx="4" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+          <rect x="552" y="136" width="4" height="76" rx="2" fill="#d29922"/>
+          <text x="566" y="156" font-family="monospace" font-size="11" font-weight="600" fill="#e6edf3">Manager</text>
+          <text x="566" y="170" font-family="monospace" font-size="8" fill="#6e7681">95 SEATS · 7.7%</text>
+          <text x="756" y="156" font-family="monospace" font-size="20" font-weight="900" fill="#d29922">12</text>
+          <text x="756" y="167" font-family="monospace" font-size="7" fill="#6e7681">perms</text>
+          <rect x="566" y="178" width="222" height="3" rx="1" fill="#161b22"/>
+          <rect x="566" y="178" width="30" height="3" rx="1" fill="#d29922" opacity="0.7"/>
+
+          <rect x="16" y="222" width="248" height="68" rx="4" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+          <rect x="16" y="222" width="4" height="68" rx="2" fill="#2f81f7"/>
+          <text x="30" y="242" font-family="monospace" font-size="11" font-weight="600" fill="#e6edf3">Developer</text>
+          <text x="30" y="256" font-family="monospace" font-size="8" fill="#6e7681">432 SEATS · 34.8%</text>
+          <text x="218" y="242" font-family="monospace" font-size="20" font-weight="900" fill="#2f81f7">10</text>
+          <text x="218" y="253" font-family="monospace" font-size="7" fill="#6e7681">perms</text>
+          <rect x="30" y="264" width="222" height="3" rx="1" fill="#161b22"/>
+          <rect x="30" y="264" width="78" height="3" rx="1" fill="#2f81f7" opacity="0.7"/>
+
+          <rect x="284" y="222" width="248" height="68" rx="4" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+          <rect x="284" y="222" width="4" height="68" rx="2" fill="#3fb950"/>
+          <text x="298" y="242" font-family="monospace" font-size="11" font-weight="600" fill="#e6edf3">Viewer</text>
+          <text x="298" y="256" font-family="monospace" font-size="8" fill="#6e7681">621 SEATS · 50.1%</text>
+          <text x="486" y="242" font-family="monospace" font-size="20" font-weight="900" fill="#3fb950">5</text>
+          <text x="486" y="253" font-family="monospace" font-size="7" fill="#6e7681">perms</text>
+          <rect x="298" y="264" width="222" height="3" rx="1" fill="#161b22"/>
+          <rect x="298" y="264" width="112" height="3" rx="1" fill="#3fb950" opacity="0.7"/>
+
+          <rect x="552" y="222" width="252" height="68" rx="4" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+          <rect x="552" y="222" width="4" height="68" rx="2" fill="#8957e5"/>
+          <text x="566" y="242" font-family="monospace" font-size="11" font-weight="600" fill="#e6edf3">Billing</text>
+          <text x="566" y="256" font-family="monospace" font-size="8" fill="#6e7681">70 SEATS · 5.6%</text>
+          <text x="756" y="242" font-family="monospace" font-size="20" font-weight="900" fill="#8957e5">8</text>
+          <text x="756" y="253" font-family="monospace" font-size="7" fill="#6e7681">perms</text>
+          <rect x="566" y="264" width="222" height="3" rx="1" fill="#161b22"/>
+          <rect x="566" y="264" width="20" height="3" rx="1" fill="#8957e5" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
+    <p class="screen-caption">Screen 3 — Role Overview: Seat distribution and permission counts per role</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ DESIGN SYSTEM -->
+<section>
+  <div class="container">
+    <div class="section-label">04 — Design System</div>
+    <div class="narrative">
+      <h2>RBAC Design System</h2>
+      <p>Built as a purpose-specific system for dense, high-stakes data interfaces. Every token, component, and pattern was designed for legibility at information density — not for marketing pages.</p>
+    </div>
+
+    <div class="ds-section">
+      <div class="ds-header">
+        <div>
+          <div class="ds-header-title">RBAC Design System</div>
+          <div class="ds-header-sub">By Wisdom Godwin · Enterprise Governance · v1.0</div>
+        </div>
+        <div class="ds-version">DS v1.0 · 2025</div>
+      </div>
+
+      <div class="ds-body">
+
+        <!-- Row 1: Colours + Typography -->
+        <div class="ds-row">
+          <div>
+            <div class="ds-block-title">Colour Tokens</div>
+            <div class="palette">
+              <div class="swatch"><div class="swatch-color" style="background:#0a0c10;"></div><div class="swatch-name">bg-base</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#0d1117;"></div><div class="swatch-name">bg-raised</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#161b22;"></div><div class="swatch-name">bg-subtle</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#21262d;border:1px solid #333;"></div><div class="swatch-name">border</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#1a1aff;"></div><div class="swatch-name">primary</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#0d2a4a;"></div><div class="swatch-name">perm-on-bg</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#238636;"></div><div class="swatch-name">success</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#d29922;"></div><div class="swatch-name">warn</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#da3633;"></div><div class="swatch-name">danger</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#f0f6fc;"></div><div class="swatch-name">text-primary</div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#8b949e;border:1px solid #ccc;"></div><div class="swatch-name">text-muted</div></div>
+            </div>
+
+            <div style="margin-top:24px;">
+              <div class="ds-block-title">Role Accent Tokens</div>
+              <div class="palette">
+                <div class="swatch"><div class="swatch-color" style="background:#da3633;"></div><div class="swatch-name">super-admin</div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#db6d28;"></div><div class="swatch-name">org-admin</div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#d29922;"></div><div class="swatch-name">manager</div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#2f81f7;"></div><div class="swatch-name">developer</div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#3fb950;"></div><div class="swatch-name">viewer</div></div>
+                <div class="swatch"><div class="swatch-color" style="background:#8957e5;"></div><div class="swatch-name">billing</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="ds-block-title">Type Scale</div>
+            <div class="type-scale">
+              <div class="type-row">
+                <div class="type-label">display / 18px</div>
+                <div class="type-sample" style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:800;color:#0f0f0f;">RBAC Governance</div>
+              </div>
+              <div class="type-row">
+                <div class="type-label">heading / 13px</div>
+                <div class="type-sample" style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#0f0f0f;">Permission Matrix</div>
+              </div>
+              <div class="type-row">
+                <div class="type-label">body / 11px</div>
+                <div class="type-sample" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#2a2a2a;">james.wu@acme.com</div>
+              </div>
+              <div class="type-row">
+                <div class="type-label">label / 9px</div>
+                <div class="type-sample" style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#6e7681;">TOTAL SEATS / LICENSED</div>
+              </div>
+              <div class="type-row">
+                <div class="type-label">micro / 8px</div>
+                <div class="type-sample" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#6e7681;">CRE · REA · UPD · DEL · EXP</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.08em;">
+              Font: IBM Plex Mono throughout — chosen for tabular alignment, data readability, and terminal authenticity.
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Components + Spacing -->
+        <div class="ds-row">
+          <div>
+            <div class="ds-block-title">Core Components</div>
+
+            <p style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px;text-transform:uppercase;">Buttons</p>
+            <div class="component-row">
+              <button class="comp-btn comp-btn-primary">Publish Changes</button>
+              <button class="comp-btn comp-btn-ghost">Cancel</button>
+              <button class="comp-btn comp-btn-danger comp-btn-sm">Revoke Access</button>
+            </div>
+
+            <p style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--muted);margin:16px 0 8px;text-transform:uppercase;">Severity Badges</p>
+            <div class="component-row">
+              <span class="comp-badge badge-low">low</span>
+              <span class="comp-badge badge-med">medium</span>
+              <span class="comp-badge badge-high">high</span>
+              <span class="comp-badge badge-crit">critical</span>
+            </div>
+
+            <p style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--muted);margin:16px 0 8px;text-transform:uppercase;">Permission Cells</p>
+            <div class="component-row">
+              <div class="comp-cell-on">✓</div>
+              <div class="comp-cell-off">·</div>
+              <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:8px;">Allowed / Denied — minimal colour delta, no red/green anxiety</span>
+            </div>
+
+            <p style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--muted);margin:16px 0 8px;text-transform:uppercase;">Unsaved State Indicator</p>
+            <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:#13151a;border-radius:3px;border:1px solid #21262d;">
+              <span style="font-size:8px;color:#d29922;font-family:'DM Mono',monospace;">●</span>
+              <span style="font-family:'DM Mono',monospace;font-size:10px;color:#d29922;">unsaved changes</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="ds-block-title">Spacing Scale</div>
+            <div class="spacing-row">
+              <div><div class="sp" style="width:4px;height:20px;"></div><div class="sp-label">4px</div></div>
+              <div><div class="sp" style="width:8px;height:20px;"></div><div class="sp-label">8px</div></div>
+              <div><div class="sp" style="width:12px;height:20px;"></div><div class="sp-label">12px</div></div>
+              <div><div class="sp" style="width:16px;height:20px;"></div><div class="sp-label">16px</div></div>
+              <div><div class="sp" style="width:24px;height:20px;"></div><div class="sp-label">24px</div></div>
+              <div><div class="sp" style="width:32px;height:20px;"></div><div class="sp-label">32px</div></div>
+              <div><div class="sp" style="width:48px;height:20px;"></div><div class="sp-label">48px</div></div>
+              <div><div class="sp" style="width:64px;height:20px;"></div><div class="sp-label">64px</div></div>
+            </div>
+
+            <div style="margin-top:28px;">
+              <div class="ds-block-title">Design Principles</div>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#1a1aff;font-weight:600;flex-shrink:0;margin-top:2px;">01</span>
+                  <div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">State over metaphor</div><div style="font-size:12px;color:var(--muted);">No lock icons, no green/red anxiety. Binary states communicate clearly without emotional noise.</div></div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#1a1aff;font-weight:600;flex-shrink:0;margin-top:2px;">02</span>
+                  <div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">Friction as feature</div><div style="font-size:12px;color:var(--muted);">Explicit publish. Exit warnings. On high-stakes surfaces, confirmation steps protect users.</div></div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#1a1aff;font-weight:600;flex-shrink:0;margin-top:2px;">03</span>
+                  <div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">Context never collapses</div><div style="font-size:12px;color:var(--muted);">Org selector is always visible. Role accents are consistent. Users always know where they are.</div></div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#1a1aff;font-weight:600;flex-shrink:0;margin-top:2px;">04</span>
+                  <div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">Density without noise</div><div style="font-size:12px;color:var(--muted);">8 resources × 6 roles × 5 actions = 240 cells. Designed for scan, not reading. Every pixel earns its place.</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ USER FLOW -->
+<section>
+  <div class="container">
+    <div class="section-label">05 — User Flow</div>
+    <div class="narrative">
+      <h2>The two critical paths</h2>
+      <p>Every design decision maps back to one of these flows. If it didn't serve either path, it didn't ship.</p>
+    </div>
+
+    <div class="flow-container">
+      <div class="flow-title">Flow A — Permission Update (Org Admin)</div>
+      <svg viewBox="0 0 820 240" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+        <rect width="820" height="240" fill="#fff"/>
+        <rect x="10" y="90" width="90" height="48" rx="6" fill="#0f0f0f"/>
+        <text x="55" y="109" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Login /</text>
+        <text x="55" y="123" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Dashboard</text>
+        <text x="55" y="152" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Entry point</text>
+        <line x1="100" y1="114" x2="126" y2="114" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="126,109 136,114 126,119" fill="#0f0f0f"/>
+        <rect x="136" y="90" width="90" height="48" rx="6" fill="#0f0f0f"/>
+        <text x="181" y="109" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Select</text>
+        <text x="181" y="123" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Org Tenant</text>
+        <text x="181" y="152" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Persistent switcher</text>
+        <line x1="226" y1="114" x2="252" y2="114" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="252,109 262,114 252,119" fill="#0f0f0f"/>
+        <rect x="262" y="90" width="90" height="48" rx="6" fill="#0f0f0f"/>
+        <text x="307" y="109" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Open Matrix</text>
+        <text x="307" y="123" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Tab</text>
+        <text x="307" y="152" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Single click</text>
+        <line x1="352" y1="114" x2="378" y2="114" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="378,109 388,114 378,119" fill="#0f0f0f"/>
+        <rect x="388" y="82" width="100" height="64" rx="6" fill="#1a1aff"/>
+        <text x="438" y="105" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Toggle</text>
+        <text x="438" y="119" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Permission</text>
+        <text x="438" y="133" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Cell</text>
+        <text x="438" y="160" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Core interaction</text>
+        <line x1="488" y1="114" x2="514" y2="114" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="514,109 524,114 514,119" fill="#0f0f0f"/>
+        <polygon points="574,90 624,114 574,138 524,114" fill="none" stroke="#0f0f0f" stroke-width="2"/>
+        <text x="574" y="110" font-family="'DM Sans',sans-serif" font-size="9" fill="#0f0f0f" text-anchor="middle">Review</text>
+        <text x="574" y="122" font-family="'DM Sans',sans-serif" font-size="9" fill="#0f0f0f" text-anchor="middle">changes?</text>
+        <text x="574" y="158" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Unsaved state indicator</text>
+        <line x1="624" y1="114" x2="648" y2="114" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="648,109 658,114 648,119" fill="#0f0f0f"/>
+        <text x="636" y="104" font-family="'DM Sans',sans-serif" font-size="9" fill="#1b7a34">Yes</text>
+        <rect x="658" y="90" width="90" height="48" rx="6" fill="#1b7a34"/>
+        <text x="703" y="109" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Publish</text>
+        <text x="703" y="123" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Changes</text>
+        <text x="703" y="152" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Audit event created</text>
+        <line x1="574" y1="138" x2="574" y2="196" stroke="#e85d04" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="574" y1="196" x2="438" y2="196" stroke="#e85d04" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="438" y1="196" x2="438" y2="146" stroke="#e85d04" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <polygon points="433,146 438,136 443,146" fill="#e85d04"/>
+        <text x="506" y="212" font-family="'DM Sans',sans-serif" font-size="9" fill="#e85d04" text-anchor="middle">No — edit more</text>
+        <rect x="10" y="14" width="12" height="12" rx="2" fill="#1a1aff"/>
+        <text x="26" y="24" font-family="'DM Sans',sans-serif" font-size="9" fill="#6b6b6b">Critical interaction</text>
+        <rect x="130" y="14" width="12" height="12" rx="2" fill="#1b7a34"/>
+        <text x="146" y="24" font-family="'DM Sans',sans-serif" font-size="9" fill="#6b6b6b">Success terminal</text>
+        <line x1="260" y1="20" x2="280" y2="20" stroke="#e85d04" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="286" y="24" font-family="'DM Sans',sans-serif" font-size="9" fill="#6b6b6b">Alternate path</text>
+      </svg>
+    </div>
+
+    <div class="flow-container" style="margin-top:18px;">
+      <div class="flow-title">Flow B — Compliance Audit Query (IT Director) · 47 min → 8 min</div>
+      <svg viewBox="0 0 820 180" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+        <rect width="820" height="180" fill="#fff"/>
+        <rect x="10" y="64" width="106" height="48" rx="6" fill="#0f0f0f"/>
+        <text x="63" y="83" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Compliance</text>
+        <text x="63" y="97" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Request Arrives</text>
+        <text x="63" y="124" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Email or Slack</text>
+        <line x1="116" y1="88" x2="140" y2="88" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="140,83 150,88 140,93" fill="#0f0f0f"/>
+        <rect x="150" y="64" width="100" height="48" rx="6" fill="#0f0f0f"/>
+        <text x="200" y="83" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Open Audit</text>
+        <text x="200" y="97" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Log Tab</text>
+        <text x="200" y="124" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Single click</text>
+        <line x1="250" y1="88" x2="274" y2="88" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="274,83 284,88 274,93" fill="#0f0f0f"/>
+        <rect x="284" y="64" width="100" height="48" rx="6" fill="#0f0f0f"/>
+        <text x="334" y="83" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Filter Severity</text>
+        <text x="334" y="97" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">or Actor</text>
+        <text x="334" y="124" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Pill filters</text>
+        <line x1="384" y1="88" x2="408" y2="88" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="408,83 418,88 408,93" fill="#0f0f0f"/>
+        <rect x="418" y="56" width="110" height="64" rx="6" fill="#1a1aff"/>
+        <text x="473" y="79" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Expand Row</text>
+        <text x="473" y="93" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">for Full Detail</text>
+        <text x="473" y="130" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Inline, no navigation</text>
+        <line x1="528" y1="88" x2="552" y2="88" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="552,83 562,88 552,93" fill="#0f0f0f"/>
+        <rect x="562" y="64" width="100" height="48" rx="6" fill="#0f0f0f"/>
+        <text x="612" y="83" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Export JSON</text>
+        <text x="612" y="97" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">or Share Link</text>
+        <text x="612" y="124" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">Evidence for auditor</text>
+        <line x1="662" y1="88" x2="686" y2="88" stroke="#0f0f0f" stroke-width="2"/>
+        <polygon points="686,83 696,88 686,93" fill="#0f0f0f"/>
+        <rect x="696" y="64" width="114" height="48" rx="6" fill="#1b7a34"/>
+        <text x="753" y="83" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">Resolved</text>
+        <text x="753" y="97" font-family="'DM Sans',sans-serif" font-size="10" fill="#fff" text-anchor="middle">in ~8 min</text>
+        <rect x="696" y="14" width="116" height="30" rx="4" fill="#f0faf3" stroke="#b2dfc0" stroke-width="1"/>
+        <text x="754" y="28" font-family="'DM Sans',sans-serif" font-size="10" fill="#1b7a34" text-anchor="middle" font-weight="600">⬇ 83% faster</text>
+        <text x="754" y="40" font-family="'DM Sans',sans-serif" font-size="8" fill="#6b6b6b" text-anchor="middle">47 min → 8 min</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ LO-FI -->
+<section>
+  <div class="container">
+    <div class="section-label">06 — Lo-Fi Wireframes</div>
+    <div class="narrative">
+      <h2>Structure before surface</h2>
+      <p>Week 2. Figma. Grey boxes. The goal wasn't polish — it was to stress-test information hierarchy and surface layout decisions before anyone got attached to colour.</p>
+    </div>
+
+    <div class="lofi-grid">
+      <div class="lofi-frame">
+        <div class="lofi-bar"><div class="lofi-dot"></div><div class="lofi-dot"></div><div class="lofi-dot"></div></div>
+        <div class="lofi-body">
+          <svg viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+            <rect x="4" y="4" width="212" height="18" rx="2" fill="#e0e0e0"/>
+            <rect x="4" y="28" width="140" height="10" rx="2" fill="#f0f0f0"/>
+            <rect x="150" y="26" width="66" height="14" rx="2" fill="#e0e0e0"/>
+            <rect x="4" y="44" width="64" height="12" rx="2" fill="#0f0f0f"/>
+            <rect x="72" y="44" width="50" height="12" rx="2" fill="#e0e0e0"/>
+            <rect x="126" y="44" width="50" height="12" rx="2" fill="#e0e0e0"/>
+            <rect x="4" y="62" width="34" height="10" rx="1" fill="#e0e0e0"/>
+            <rect x="44" y="62" width="26" height="10" rx="1" fill="#d0d0d0"/>
+            <rect x="76" y="62" width="26" height="10" rx="1" fill="#d0d0d0"/>
+            <rect x="108" y="62" width="26" height="10" rx="1" fill="#d0d0d0"/>
+            <rect x="140" y="62" width="26" height="10" rx="1" fill="#d0d0d0"/>
+            <rect x="44" y="78" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="56" y="78" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="68" y="78" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="80" y="78" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="92" y="78" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="108" y="78" width="10" height="10" rx="1" fill="#f5f5f5" stroke="#d0d0d0" stroke-width="0.5"/>
+            <rect x="120" y="78" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="132" y="78" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="144" y="78" width="10" height="10" rx="1" fill="#f5f5f5" stroke="#d0d0d0" stroke-width="0.5"/>
+            <rect x="4" y="78" width="34" height="8" rx="1" fill="#f0f0f0"/>
+            <rect x="44" y="94" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="56" y="94" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="68" y="94" width="10" height="10" rx="1" fill="#f5f5f5" stroke="#d0d0d0" stroke-width="0.5"/>
+            <rect x="108" y="94" width="10" height="10" rx="1" fill="#f5f5f5" stroke="#d0d0d0" stroke-width="0.5"/>
+            <rect x="120" y="94" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="4" y="94" width="30" height="8" rx="1" fill="#f0f0f0"/>
+            <rect x="44" y="110" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="108" y="110" width="10" height="10" rx="1" fill="#f5f5f5" stroke="#d0d0d0" stroke-width="0.5"/>
+            <rect x="4" y="110" width="28" height="8" rx="1" fill="#f0f0f0"/>
+            <rect x="44" y="126" width="10" height="10" rx="1" fill="#f5f5f5" stroke="#d0d0d0" stroke-width="0.5"/>
+            <rect x="56" y="126" width="10" height="10" rx="1" fill="#c8d8f8" stroke="#6699ee" stroke-width="0.5"/>
+            <rect x="4" y="126" width="28" height="8" rx="1" fill="#f0f0f0"/>
+            <rect x="4" y="150" width="80" height="20" rx="3" fill="#0f0f0f"/>
+            <text x="4" y="196" font-family="monospace" font-size="7" fill="#aaaaaa">← Matrix · wk 2</text>
+          </svg>
+        </div>
+        <div class="lofi-caption">Permission Matrix — Week 2</div>
+      </div>
+
+      <div class="lofi-frame">
+        <div class="lofi-bar"><div class="lofi-dot"></div><div class="lofi-dot"></div><div class="lofi-dot"></div></div>
+        <div class="lofi-body">
+          <svg viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+            <rect x="4" y="4" width="212" height="18" rx="2" fill="#e0e0e0"/>
+            <rect x="4" y="28" width="80" height="10" rx="2" fill="#f0f0f0"/>
+            <rect x="4" y="44" width="28" height="12" rx="6" fill="#0f0f0f"/>
+            <rect x="36" y="44" width="32" height="12" rx="6" fill="#e0e0e0"/>
+            <rect x="72" y="44" width="24" height="12" rx="6" fill="#e0e0e0"/>
+            <rect x="100" y="44" width="24" height="12" rx="6" fill="#e0e0e0"/>
+            <rect x="136" y="42" width="80" height="16" rx="3" fill="#f5f5f5" stroke="#d0d0d0" stroke-width="0.5"/>
+            <rect x="4" y="64" width="212" height="14" rx="0" fill="#0f0f0f"/>
+            <rect x="4" y="82" width="212" height="20" rx="0" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="0.5"/>
+            <rect x="8" y="87" width="30" height="8" rx="1" fill="#c8d8f8"/>
+            <rect x="44" y="87" width="44" height="8" rx="1" fill="#e0e0e0"/>
+            <rect x="186" y="85" width="26" height="12" rx="2" fill="#f5c6a0"/>
+            <rect x="4" y="102" width="212" height="36" rx="0" fill="#fafafa" stroke="#c8d8f8" stroke-width="1"/>
+            <rect x="8" y="107" width="26" height="7" rx="1" fill="#e0e0e0"/>
+            <rect x="8" y="118" width="38" height="7" rx="1" fill="#d0d0d0"/>
+            <rect x="54" y="107" width="26" height="7" rx="1" fill="#e0e0e0"/>
+            <rect x="54" y="118" width="44" height="7" rx="1" fill="#d0d0d0"/>
+            <rect x="8" y="130" width="44" height="8" rx="2" fill="#0f0f0f"/>
+            <rect x="58" y="130" width="58" height="8" rx="2" fill="#e0e0e0"/>
+            <rect x="4" y="142" width="212" height="18" rx="0" fill="#ffffff" stroke="#e0e0e0" stroke-width="0.5"/>
+            <rect x="8" y="147" width="30" height="8" rx="1" fill="#c8d8f8"/>
+            <rect x="186" y="145" width="26" height="12" rx="2" fill="#fecaca"/>
+            <rect x="4" y="162" width="212" height="18" rx="0" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="0.5"/>
+            <rect x="8" y="167" width="30" height="8" rx="1" fill="#c8d8f8"/>
+            <rect x="186" y="165" width="26" height="12" rx="2" fill="#d1fae5"/>
+            <rect x="4" y="184" width="212" height="12" rx="0" fill="#f0f0f0"/>
+            <rect x="170" y="185" width="16" height="10" rx="2" fill="#0f0f0f"/>
+            <text x="4" y="199" font-family="monospace" font-size="7" fill="#aaaaaa">← Inline expand chosen</text>
+          </svg>
+        </div>
+        <div class="lofi-caption">Audit Log — Week 2</div>
+      </div>
+
+      <div class="lofi-frame">
+        <div class="lofi-bar"><div class="lofi-dot"></div><div class="lofi-dot"></div><div class="lofi-dot"></div></div>
+        <div class="lofi-body">
+          <svg viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+            <rect x="4" y="4" width="212" height="18" rx="2" fill="#e0e0e0"/>
+            <rect x="4" y="28" width="100" height="10" rx="2" fill="#f0f0f0"/>
+            <rect x="4" y="44" width="212" height="14" rx="0" fill="#f0f0f0"/>
+            <rect x="130" y="44" width="70" height="14" rx="0" fill="#0f0f0f"/>
+            <rect x="4" y="64" width="66" height="54" rx="3" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/>
+            <rect x="4" y="64" width="3" height="54" rx="1" fill="#f87171"/>
+            <rect x="11" y="69" width="36" height="8" rx="1" fill="#d0d0d0"/>
+            <rect x="11" y="80" width="24" height="6" rx="1" fill="#e0e0e0"/>
+            <rect x="48" y="69" width="16" height="14" rx="1" fill="#e8b4b8"/>
+            <rect x="11" y="94" width="52" height="4" rx="1" fill="#eee"/>
+            <rect x="11" y="103" width="52" height="8" rx="1" fill="#f0f0f0"/>
+            <rect x="78" y="64" width="66" height="54" rx="3" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/>
+            <rect x="78" y="64" width="3" height="54" rx="1" fill="#fb923c"/>
+            <rect x="85" y="69" width="36" height="8" rx="1" fill="#d0d0d0"/>
+            <rect x="85" y="80" width="24" height="6" rx="1" fill="#e0e0e0"/>
+            <rect x="122" y="69" width="16" height="14" rx="1" fill="#fed7aa"/>
+            <rect x="85" y="94" width="52" height="4" rx="1" fill="#eee"/>
+            <rect x="85" y="103" width="52" height="8" rx="1" fill="#f0f0f0"/>
+            <rect x="152" y="64" width="64" height="54" rx="3" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/>
+            <rect x="152" y="64" width="3" height="54" rx="1" fill="#fbbf24"/>
+            <rect x="159" y="69" width="36" height="8" rx="1" fill="#d0d0d0"/>
+            <rect x="159" y="80" width="24" height="6" rx="1" fill="#e0e0e0"/>
+            <rect x="196" y="69" width="14" height="14" rx="1" fill="#fef08a"/>
+            <rect x="4" y="124" width="66" height="54" rx="3" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/>
+            <rect x="4" y="124" width="3" height="54" rx="1" fill="#60a5fa"/>
+            <rect x="11" y="129" width="36" height="8" rx="1" fill="#d0d0d0"/>
+            <rect x="11" y="140" width="24" height="6" rx="1" fill="#e0e0e0"/>
+            <rect x="48" y="129" width="16" height="14" rx="1" fill="#bfdbfe"/>
+            <rect x="11" y="154" width="52" height="4" rx="1" fill="#eee"/>
+            <rect x="11" y="163" width="52" height="8" rx="1" fill="#f0f0f0"/>
+            <rect x="78" y="124" width="66" height="54" rx="3" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/>
+            <rect x="78" y="124" width="3" height="54" rx="1" fill="#4ade80"/>
+            <rect x="85" y="129" width="36" height="8" rx="1" fill="#d0d0d0"/>
+            <rect x="85" y="140" width="24" height="6" rx="1" fill="#e0e0e0"/>
+            <rect x="122" y="129" width="16" height="14" rx="1" fill="#bbf7d0"/>
+            <rect x="152" y="124" width="64" height="54" rx="3" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/>
+            <rect x="152" y="124" width="3" height="54" rx="1" fill="#a78bfa"/>
+            <rect x="159" y="129" width="36" height="8" rx="1" fill="#d0d0d0"/>
+            <rect x="159" y="140" width="24" height="6" rx="1" fill="#e0e0e0"/>
+            <text x="4" y="199" font-family="monospace" font-size="7" fill="#aaaaaa">← Seat bar added wk 6</text>
+          </svg>
+        </div>
+        <div class="lofi-caption">Role Overview — Week 3</div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-icon">📐</div>
+      <div>
+        <h3>What changed between lo-fi and shipped</h3>
+        <p>The matrix survived structurally intact. The audit log's right-panel variant was cut after three usability sessions — inline expansion won. The role overview had no seat distribution bar until Week 6, when admins kept asking "which roles are most common?" during testing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ RESEARCH + TOOLS -->
+<section>
+  <div class="container">
+    <div class="section-label">07 — Research & Tools</div>
+    <div class="narrative">
+      <h2>14 sessions. 9 enterprise accounts. One reframe.</h2>
+      <p>The insight that changed everything: admins didn't need to see capabilities — they needed to see <strong>consequences</strong>. The question was never "what can I configure?" It was "if I do this, what breaks?"</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin:28px 0;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Discovery Methods</div>
+        <div class="step">
+          <div class="step-num" style="width:36px;height:36px;font-size:12px;">1</div>
+          <div class="step-content"><h3 style="margin-top:8px;">14 user interviews</h3><p>Only 3 of 14 could correctly explain what a Billing role could access without looking it up. The system was illegible.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="width:36px;height:36px;font-size:12px;">2</div>
+          <div class="step-content"><h3 style="margin-top:8px;">Session shadowing</h3><p>No admin used the audit log proactively. It existed as evidence, not intelligence. That reframe became a design pillar.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num" style="width:36px;height:36px;font-size:12px;">3</div>
+          <div class="step-content"><h3 style="margin-top:8px;">Competitive analysis</h3><p>Okta, Rippling, Azure AD — all powerful but require training. Opportunity: clarity at scale, not just capability.</p></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Toolstack</div>
+        <div class="tools-list">
+          <div class="tool-pill">Figma <span class="tool-pill-phase">Design</span></div>
+          <div class="tool-pill">Maze <span class="tool-pill-phase">Usability Testing</span></div>
+          <div class="tool-pill">Lookback <span class="tool-pill-phase">Moderated Sessions</span></div>
+          <div class="tool-pill">Amplitude <span class="tool-pill-phase">Analytics</span></div>
+          <div class="tool-pill">Notion <span class="tool-pill-phase">Docs</span></div>
+        </div>
+        <div class="insight" style="margin-top:20px;">
+          <div class="insight-icon">🧠</div>
+          <div>
+            <h3>Most impactful test moment</h3>
+            <p>In Maze, 9 of 14 participants clicked the role column header expecting alphabetical sort. One tooltip fix. Zero related support tickets in 90 days post-launch.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ TRADEOFFS -->
+<section>
+  <div class="container">
+    <div class="section-label">08 — Design Tradeoffs</div>
+    <h2>Every real decision, unfiltered</h2>
+    <p style="max-width:660px;margin-bottom:28px;">Each of these decisions had a real cost. Here's what was chosen and why.</p>
+
+    <table class="tradeoff-table">
+      <thead><tr><th>Decision</th><th>Rejected</th><th>Chosen</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Permission UI</td><td class="col-sm">Drag-and-drop natural language builder</td><td><span class="tag-chose">Matrix Grid</span></td><td class="col-sm">NL tested 40% slower for bulk edits. Enterprise admins think in spreadsheets.</td></tr>
+        <tr><td>Save model</td><td class="col-sm">Auto-save with undo history</td><td><span class="tag-chose">Explicit Publish</span></td><td class="col-sm">Auto-save caused 3 critical errors in testing. The friction is the feature.</td></tr>
+        <tr><td>Audit detail</td><td class="col-sm">Right-side detail panel</td><td><span class="tag-chose">Inline Row Expand</span></td><td class="col-sm">Panel compressed table on 13" screens. Inline keeps context, no navigation.</td></tr>
+        <tr><td>Audit stream</td><td class="col-sm">Real-time WebSocket feed</td><td><span class="tag-chose">Paginated + Filters</span></td><td class="col-sm">Live updates caused scroll loss and anxiety in testing. Stability &gt; recency.</td></tr>
+        <tr><td>Org context</td><td class="col-sm">Separate dashboards per tenant</td><td><span class="tag-chose">Unified Dropdown</span></td><td class="col-sm">18% of sessions spent switching. Single-org users see unused control — acceptable waste.</td></tr>
+        <tr><td>Role overview</td><td class="col-sm">Sidebar inside matrix tab</td><td><span class="tag-chose">Separate Tab</span></td><td class="col-sm">Matrix = task surface. Overview = monitoring surface. Mixing creates visual competition.</td></tr>
+        <tr><td>Granularity</td><td class="col-sm">5 preset permission tiers</td><td><span class="tag-chose">Full CRUD + Export</span></td><td class="col-sm">Enterprise RFPs required custom granularity. Complexity kept, hidden by smart defaults.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="decision-box">
+      <div class="box-label">The call I'm still not sure about</div>
+      <h3>We cut the AI permission risk score from v1</h3>
+      <p>We prototyped a feature that flagged dangerous combos (Developer + Billing Export = data leak vector). Engineering loved it. Security loved it. In testing, admins felt surveilled. We cut it. It belongs on the roadmap — but trust has to be earned before guardrails make sense.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ IMPACT -->
+<section>
+  <div class="container">
+    <div class="section-label">09 — Impact</div>
+    <div class="narrative">
+      <h2>Measured across 18 accounts · 34,000 seats · 90 days</h2>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="big">47<span>→8</span></div><div class="metric-label">Minutes to resolve a compliance audit query</div><div class="delta">↓ 83% reduction</div></div>
+      <div class="metric-card"><div class="big">78<span>%</span></div><div class="metric-label">Drop in permission support tickets (4.2/wk → 0.9)</div><div class="delta">↓ ticket volume</div></div>
+      <div class="metric-card"><div class="big">3.1<span>×</span></div><div class="metric-label">More frequent proactive access reviews per month</div><div class="delta">↑ 3× increase</div></div>
+      <div class="metric-card"><div class="big">91<span>%</span></div><div class="metric-label">Task completion in usability testing (was 54%)</div><div class="delta">↑ +37 pts</div></div>
+      <div class="metric-card"><div class="big">0</div><div class="metric-label">Critical permission errors in 90 days (was 3/quarter)</div><div class="delta">↓ zero incidents</div></div>
+      <div class="metric-card"><div class="big">4.4<span>/5</span></div><div class="metric-label">Admin CSAT score (was 2.8/5)</div><div class="delta">↑ +1.6 pts</div></div>
+    </div>
+
+    <div class="pull-quote">
+      <p>"This is the first time I've actually understood what my team can and can't do. I used to just guess."</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:-20px;margin-bottom:32px;">— IT Director, 1,100-seat org, 60 days post-launch</p>
+
+    <div class="ba-grid">
+      <div class="ba-card before">
+        <div class="ba-label">Before</div>
+        <ul>
+          <li>Flat list of checkboxes, no grouping</li>
+          <li>No role summaries or seat visibility</li>
+          <li>Audit required CSV export to filter</li>
+          <li>Separate app per tenant</li>
+          <li>Auto-save — no confirmation step</li>
+          <li>No severity differentiation on events</li>
+        </ul>
+      </div>
+      <div class="ba-card after">
+        <div class="ba-label">After</div>
+        <ul>
+          <li>Role × resource × action matrix</li>
+          <li>Role overview tab with seat distribution</li>
+          <li>Real-time severity filter + inline detail</li>
+          <li>Unified org switcher in persistent header</li>
+          <li>Explicit publish with unsaved state signal</li>
+          <li>Four-tier severity with expandable rows</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ REFLECTION -->
+<section>
+  <div class="container">
+    <div class="section-label">10 — Reflection</div>
+    <div class="narrative">
+      <h2>What I'd do differently</h2>
+      <p>The AI risk score we cut? I should have shipped a read-only version — no blocking, just a subtle signal. I overcorrected on the trust concern. Post-launch feedback showed admins would have welcomed it, especially opt-in.</p>
+      <p>I also underinvested in onboarding for admins inheriting an existing permission structure. We designed for people setting up from scratch. Most enterprise admins inherit a mess and need to understand it before they can change it. That job-to-be-done was left entirely unserved.</p>
+      <p>Good design ships knowingly incomplete. You just have to know which parts you left out.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════ FOOTER -->
+<div class="footer">
+  <div>
+    <div class="footer-name">Wisdom Godwin</div>
+    <div class="footer-meta" style="margin-top:4px;">Lead Product Designer · RBAC Governance Engine · 2025</div>
+  </div>
+  <div class="footer-meta">RBAC Design System · Enterprise SaaS · 14 weeks</div>
+</div>
+
+</body>
+</html>
