@@ -1,0 +1,11 @@
+{
+  "name": "rbac-case-study",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "serve .",
+    "start": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.0.0"
+  }
+}
